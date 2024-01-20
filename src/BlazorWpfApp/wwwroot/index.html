@@ -16,7 +16,7 @@
 </head>
 
 <body>
-    <div id="debug style="background-color: black; color: lime;"></div>
+    <div id="debug" style="background-color: black; color: lime;"></div>
     <div id="app"></div>
     <script type="text/javascript">
         var console = {};
@@ -29,25 +29,91 @@
             logger.appendChild(element);
         }
         console.log("Starting logger...");
-        */
+            * /
     </script>
     <script src="_framework/blazor.webview.js"></script>
+
     <script>
-        function loadWaveForm() 
-        {
-                console.log('test2');
-                const wavesurfer = WaveSurfer.create({
+        //switcher
+        var idDivImages = ["frame0", "frame1", "frame2", "frame3", "frame4", "frame5", "frame6", "frame7", "frame8"];
+        var displayedFrame = 0;
+
+        function onStartDivImages() {
+            try {
+                idDivImages.forEach(x => document.getElementById(x).style.display = 'none');
+                document.getElementById("frame0").style.display = 'block';
+            }
+            catch (error) {
+                alert(error);
+            }
+        }
+
+        function updateFrame(time) {
+            var data = JSON.parse(JSON.stringify(theChart.data.datasets[0].data));
+            let foundElement = null;
+
+            for (const element of data) {
+                if (element.x > time) {
+                    foundElement = element;
+                    break;
+                }
+            }
+
+            if (foundElement != null) {
+                document.getElementById("phonemFrame").textContent = JSON.stringify(foundElement);
+                changeFrame(Math.floor(foundElement.y));
+            }
+
+        }
+
+        function changeFrame(newFrame) {
+            try {
+                if (displayedFrame != newFrame) {
+                    displayedFrame = newFrame;
+                    idDivImages.forEach(x => document.getElementById(x).style.display = 'none');
+                    document.getElementById(idDivImages[newFrame]).style.display = 'block';
+                }
+            }
+            catch (error) {
+                alert(error);
+            }
+        }
+    </script>
+
+    <script>
+        function loadWaveForm() {
+            var markerOffsetFixed = 0;
+            var timerSlowDown = 0;
+
+            const wavesurfer = WaveSurfer.create({
                 container: '#waveform',
                 waveColor: 'lime',
                 progressColor: 'red',
                 url: '/LIEUT1.wav'
             })
 
-            console.log("created wavesurfer")
-
             wavesurfer.on('interaction', () => {
                 wavesurfer.play()
             })
+
+            wavesurfer.on('timeupdate', function () {
+                if (timerSlowDown > 3) {
+                    var currentTime = wavesurfer.getCurrentTime();
+                    var markerOffset = 22100 * 4 * currentTime;
+                    markerOffsetFixed = markerOffset.toFixed();
+                    document.getElementById("debugDiv").textContent = markerOffsetFixed;
+                    updateFrame(markerOffsetFixed);
+                    timerSlowDown = 0;
+                }
+                else {
+                    timerSlowDown++;
+                }
+            });
+
+            wavesurfer.on('click', function () {
+                var currentTime = wavesurfer.getCurrentTime();
+                var markerOffset = 22100 * 4 * currentTime;
+            });
         }
 
     </script>
@@ -102,7 +168,9 @@
                         beginAtZero: true,
                         grid: {
                             color: '#ff0000'
-                        }
+                        },
+                        min: 0,
+                        max: 8.9
                     }
                 },
                 plugins: {
@@ -116,8 +184,7 @@
             }
         }
 
-        function loadMarkersUi()
-        {
+        function loadMarkersUi() {
             console.log(document.getElementById('markersContainer'));
             var ctx = document.getElementById('markersContainer').getContext('2d');
             theChart = new Chart(ctx, options);
@@ -125,9 +192,8 @@
             theChart.canvas.parentNode.style.width = '100%';
         }
 
-        function loadNewLipData()
-        {
-            try{
+        function loadNewLipData() {
+            try {
 
                 let newdata = [
                     {
@@ -141,43 +207,39 @@
                         "showLine": true
                     }];
 
-                
+
                 theChart.data.datasets = newdata;
                 theChart.update();
             }
-            catch(error)
-            {
-              alert(error);
+            catch (error) {
+                alert(error);
             }
         }
 
-        function getMarkersPhonemData()
-        {
+        function getMarkersPhonemData() {
             var data = JSON.parse(JSON.stringify(theChart.data.datasets[0].data));
 
-                data.forEach(point => {
-                    point.marker = point.x;
-                    delete point.x;
-                    point.phonem = point.y;
-                    delete point.y;
-                });
+            data.forEach(point => {
+                point.marker = point.x;
+                delete point.x;
+                point.phonem = point.y;
+                delete point.y;
+            });
             var toReturn = JSON.stringify(data);
             alert(JSON.stringify(toReturn));
             return toReturn;
         }
 
-        function putNewMarker(markerPos, phonemPos)
-        {
-            newData2 = {"x": markerPos, "y": phonemPos};
+        function putNewMarker(markerPos, phonemPos) {
+            newData2 = { "x": markerPos, "y": phonemPos };
 
             theChart.data.datasets.forEach((dataset) => {
-            dataset.data.push(newData2);
+                dataset.data.push(newData2);
             });
             theChart.update();
         }
 
-        function loadLipMarkers(phonomarkers)
-        {
+        function loadLipMarkers(phonomarkers) {
             var phonomarkers = JSON.parse(phonomarkers);
             max_x = phonomarkers[phonomarkers.length - 1].markerPos;
             alert(phonomarkers.length);
@@ -185,7 +247,7 @@
             theChart.clear();
             loadNewLipData();
             phonomarkers.forEach((phonomarker) => {
-                newData3 = {"x": phonomarker.markerPos, "y": phonomarker.phonemPos};
+                newData3 = { "x": phonomarker.markerPos, "y": phonomarker.phonemPos };
                 theChart.data.datasets[0].data.push(newData3);
             })
             theChart.update();

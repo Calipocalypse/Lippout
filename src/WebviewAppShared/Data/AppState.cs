@@ -8,7 +8,7 @@ namespace WebviewAppTest
     public class AppState
     {
         public LipFile LipFile { get; set; }
-
-
+        public bool EditorView { get; set; }
+        public bool SetupView { get; set; }
     }
 }

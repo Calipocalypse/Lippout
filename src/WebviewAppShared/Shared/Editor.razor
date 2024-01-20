@@ -5,7 +5,28 @@
 @inject IJSRuntime JsRuntime
 @page "/"
 
-<div style="display: flex; flex-direction: column; flex-grow: 1;">
+<div class="tab">
+    <button class="tabButton" @onclick="SwitchToSetupView">Setup</button>
+    <button class="tabButton" @onclick="SwitchToEditorView">Editor</button>
+    @code
+    {
+        private async Task SwitchToSetupView()
+        {
+            AppState.SetupView = true;
+            AppState.EditorView = false;
+        }
+        private async Task SwitchToEditorView()
+        {
+            AppState.EditorView = true;
+            AppState.SetupView = false;
+        }
+
+    }
+</div>
+
+
+<div hidden="@(!AppState.SetupView)" style="display: flex; flex-direction: column; flex-grow: 1;">
+
     <div style="width: 100%; display: flex; margin: 5px;">
         <div style="margin: 5px; margin-right: 37px;">Dialog text</div>
         <input style="flex: 1; margin: 5px; margin-right: 15px; background-color: #222222" />
@@ -27,17 +48,30 @@
         *@
     </div>
     <p>
-    <label>
-    <InputFile OnChange="@SetLipFile" />
+    <label style="width: 250px; height: 250px; background-color: red;">
+    <InputFile OnChange="@SetLipFile"/>
     </label>
     </p>
-    <button @onclick="GetMarkersPhonemData" style="color: black;">Get Data</button>
-    <button @onclick="PutNewMarker" style="color: black;">New Marker</button>
-
-    <div id="waveform" style="border-color: black; border-style: dashed"</div>
-    <canvas id="markersContainer" style="height: 100px; width: 250px; display: block; box-sizing: border-box;" width="250" height="100"></canvas>
+    </div>
+<div hidden="@(!AppState.EditorView)" style="display: flex; flex-direction: row; flex-grow: 1;">
+        <button @onclick="GetMarkersPhonemData">Get Data</button>
+        <button @onclick="PutNewMarker">New Marker</button>
+    <div>
+        <div id="waveform"</div>
+        <canvas id="markersContainer" style="height: 100px; width: 250px; display: block; box-sizing: border-box;" width="250" height="100"></canvas>
+    </div>
+    <img id="frame0" src="LIEUTNP000000.PNG"/>
+    <img id="frame1" src="LIEUTNP000001.PNG"/>
+    <img id="frame2" src="LIEUTNP000002.PNG"/>
+    <img id="frame3" src="LIEUTNP000003.PNG"/>
+    <img id="frame4" src="LIEUTNP000004.PNG"/>
+    <img id="frame5" src="LIEUTNP000005.PNG"/>
+    <img id="frame6" src="LIEUTNP000006.PNG"/>
+    <img id="frame7" src="LIEUTNP000007.PNG"/>
+    <img id="frame8" src="LIEUTNP000008.PNG"/>
+    </div>
     <div id="debugDiv"></div>
-    <img src="./LIEUTNP000000.PNG"/>
+    <div id="phonemFrame" style="color: lime;"></div>
 
     @code {
 
@@ -51,6 +85,7 @@
                 await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./chart.min.js").AsTask();
                 await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./chartjs-plugin-dragdata.min.js").AsTask();
 
+            await JsRuntime.InvokeVoidAsync("onStartDivImages");
                 await JsRuntime.InvokeVoidAsync("loadWaveForm");
                 await JsRuntime.InvokeVoidAsync("loadMarkersUi");
             }
@@ -105,4 +140,3 @@
     @functions {
         string value;
     }
-</div>
