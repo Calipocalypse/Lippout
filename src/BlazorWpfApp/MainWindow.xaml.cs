@@ -4,7 +4,6 @@
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using WebviewAppTest;
-using WebviewAppTest.Data;
 
 namespace BlazorWpfApp
 {
@@ -22,7 +21,6 @@ namespace BlazorWpfApp
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddWpfBlazorWebView();
             serviceCollection.AddSingleton<AppState>(_appState);
-            serviceCollection.AddSingleton<WeatherForecastService>();
             Resources.Add("services", serviceCollection.BuildServiceProvider());
 
         }
@@ -31,12 +29,12 @@ namespace BlazorWpfApp
         {
             MessageBox.Show(
                 owner: this,
-                messageBoxText: $"Current counter value is: {_appState.littleCounter}",
+                messageBoxText: $"Current counter value is: ",
                 caption: "Counter");
         }
         private void ShowLipFile(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show(_appState.LoadedLipFile);
+            MessageBox.Show(_appState.LipFile.NumberOfPhonems.ToString());
         }
     }
 

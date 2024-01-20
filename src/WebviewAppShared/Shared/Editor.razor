@@ -1,4 +1,6 @@
 ﻿@using System.IO;
+@using LipFileManager;
+@using WebviewAppShared.Operations;
 @inject AppState AppState
 @inject IJSRuntime JsRuntime
 @page "/"
@@ -24,13 +26,18 @@
         @*<input type="file" id="lip" name="lip" accept="file/lip" @bind="@value" @oninput="(EventArgs) => { SetLipFile(EventArgs.Value.ToString()); }" /> <button onclick="playAudio()">Load</button>
         *@
     </div>
+    <p>
+    <label>
     <InputFile OnChange="@SetLipFile" />
-    <div id="waveform" style="border-color: black; border-style: dashed">
-        <!-- the waveform will be rendered here -->
-    </div>
+    </label>
+    </p>
+    <button @onclick="GetMarkersPhonemData" style="color: black;">Get Data</button>
+    <button @onclick="PutNewMarker" style="color: black;">New Marker</button>
+
+    <div id="waveform" style="border-color: black; border-style: dashed"</div>
     <canvas id="markersContainer" style="height: 100px; width: 250px; display: block; box-sizing: border-box;" width="250" height="100"></canvas>
-    <div id="debugDiv">
-    </div>
+    <div id="debugDiv"></div>
+    <img src="./LIEUTNP000000.PNG"/>
 
     @code {
 
@@ -38,12 +45,16 @@
         private IJSObjectReference? moduleWave;
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./wavesurfer.min.js").AsTask();
-            await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./chart.min.js").AsTask();
-            await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./chartjs-plugin-dragdata.min.js").AsTask();
+            if (firstRender)
+            {
+                await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./wavesurfer.min.js").AsTask();
+                await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./chart.min.js").AsTask();
+                await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./chartjs-plugin-dragdata.min.js").AsTask();
 
-            await JsRuntime.InvokeVoidAsync("loadWaveForm");
-            await JsRuntime.InvokeVoidAsync("loadMarkersUi");
+                await JsRuntime.InvokeVoidAsync("loadWaveForm");
+                await JsRuntime.InvokeVoidAsync("loadMarkersUi");
+            }
+            Console.WriteLine();
         }
     }
 
@@ -51,10 +62,42 @@
 
         private async Task SetLipFile(InputFileChangeEventArgs e)
         {
-            MemoryStream ms = new MemoryStream();
-            await e.File.OpenReadStream().CopyToAsync(ms);
-            var bytes = ms.ToArray();
-            AppState.LoadedLipFile = string.Join(" ", bytes);
+            try
+            {
+                var ms = new MemoryStream();
+                await e.File.OpenReadStream().CopyToAsync(ms);
+                byte[] fileBytes;
+                using (MemoryStream memoryStream = new MemoryStream())
+                {
+                    await e.File.OpenReadStream().CopyToAsync(memoryStream);
+                    fileBytes = memoryStream.ToArray();
+                }
+                AppState.LipFile = new LipFile(fileBytes);
+                await PutNewMarkers(AppState.LipFile);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+        }
+
+        private async Task PutNewMarkers(LipFile lipFile)
+        {
+            var phonomarkersJson = new JsonObjectConverter().ConvertToMarkersGraphJson(lipFile);
+            await JsRuntime.InvokeVoidAsync("loadLipMarkers", phonomarkersJson);
+        }
+
+        private async Task GetMarkersPhonemData()
+        {
+            var data = await JsRuntime.InvokeAsync<string>("getMarkersPhonemData");
+            Console.WriteLine();
+        }
+
+        private async Task PutNewMarker()
+        {
+            var x = 523555;
+            var y = 7;
+            await JsRuntime.InvokeVoidAsync("putNewMarker", x, y);
         }
 
     }

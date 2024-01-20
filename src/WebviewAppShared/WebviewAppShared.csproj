@@ -16,6 +16,10 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebView" Version="7.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\LipFileManager\LipFileManager.csproj" />
+  </ItemGroup>
+
   
   <ItemGroup>
     <SupportedPlatform Include="browser" />
