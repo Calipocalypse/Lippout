@@ -31,8 +31,12 @@ namespace BlazorWpfApp
         {
             MessageBox.Show(
                 owner: this,
-                messageBoxText: $"Current counter value is: {_appState.Counter}",
+                messageBoxText: $"Current counter value is: {_appState.littleCounter}",
                 caption: "Counter");
+        }
+        private void ShowLipFile(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show(_appState.LoadedLipFile);
         }
     }
 

@@ -1,0 +1,65 @@
+﻿@using System.IO;
+@inject AppState AppState
+@inject IJSRuntime JsRuntime
+@page "/"
+
+<div style="display: flex; flex-direction: column; flex-grow: 1;">
+    <div style="width: 100%; display: flex; margin: 5px;">
+        <div style="margin: 5px; margin-right: 37px;">Dialog text</div>
+        <input style="flex: 1; margin: 5px; margin-right: 15px; background-color: #222222" />
+    </div>
+    <div style="width: 100%; display: flex; margin: 5px;">
+        <div style="margin: 5px">Phonemon text</div>
+        <input style="flex: 1; margin: 5px; margin-right: 15px; background-color: #222222" />
+    </div>
+    <div>
+        <input type="file" id="wav" name="wav" accept="audio/wav" /> <button onclick="playAudio()">Play</button>
+    </div>
+    <div id="currentTime">
+        0:00
+    </div>
+    <div>
+        LIP file
+        @value
+        @*<input type="file" id="lip" name="lip" accept="file/lip" @bind="@value" @oninput="(EventArgs) => { SetLipFile(EventArgs.Value.ToString()); }" /> <button onclick="playAudio()">Load</button>
+        *@
+    </div>
+    <InputFile OnChange="@SetLipFile" />
+    <div id="waveform" style="border-color: black; border-style: dashed">
+        <!-- the waveform will be rendered here -->
+    </div>
+    <canvas id="markersContainer" style="height: 100px; width: 250px; display: block; box-sizing: border-box;" width="250" height="100"></canvas>
+    <div id="debugDiv">
+    </div>
+
+    @code {
+
+        private IJSObjectReference? module;
+        private IJSObjectReference? moduleWave;
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./wavesurfer.min.js").AsTask();
+            await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./chart.min.js").AsTask();
+            await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./chartjs-plugin-dragdata.min.js").AsTask();
+
+            await JsRuntime.InvokeVoidAsync("loadWaveForm");
+            await JsRuntime.InvokeVoidAsync("loadMarkersUi");
+        }
+    }
+
+    @code {
+
+        private async Task SetLipFile(InputFileChangeEventArgs e)
+        {
+            MemoryStream ms = new MemoryStream();
+            await e.File.OpenReadStream().CopyToAsync(ms);
+            var bytes = ms.ToArray();
+            AppState.LoadedLipFile = string.Join(" ", bytes);
+        }
+
+    }
+
+    @functions {
+        string value;
+    }
+</div>

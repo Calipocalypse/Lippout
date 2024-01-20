@@ -6,5 +6,7 @@ namespace WebviewAppTest
     public class AppState
     {
         public int Counter { get; set; }
+        public int littleCounter { get; set; }
+        public string LoadedLipFile { get; set; }
     }
 }

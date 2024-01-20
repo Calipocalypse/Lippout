@@ -4,38 +4,123 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Blazor WPF app</title>
+    <title>Lippout</title>
     <base href="/" />
     <link rel="stylesheet" href="_content/WebviewAppShared/css/bootstrap/bootstrap.min.css" />
     <link href="_content/WebviewAppShared/css/site.css" rel="stylesheet" />
     <link href="BlazorWpfApp.styles.css" rel="stylesheet" />
-
-    <!-- for water demo page -->
-    <script src="_content/WebviewAppShared/water/OES_texture_float_linear-polyfill.js"></script>
-    <script src="_content/WebviewAppShared/water/lightgl.js"></script>
-    <script src="_content/WebviewAppShared/water/cubemap.js"></script>
-    <script src="_content/WebviewAppShared/water/renderer.js"></script>
-    <script src="_content/WebviewAppShared/water/water.js"></script>
-    <script src="_content/WebviewAppShared/water/main.js"></script>
+    <link href="index.css" rel="stylesheet" />
+    <script src="chart.min.js"></script>
+    <script src="chartjs-plugin-dragdata.min.js"></script>
+    <script src="wavesurfer.min.js"></script>
 </head>
 
 <body>
-    <!-- water demo -->
-    <img id="tiles" style="display: none" src="_content/WebviewAppShared/water/tiles.jpg">
-    <img id="xneg" style="display: none" src="_content/WebviewAppShared/water/xneg.jpg">
-    <img id="xpos" style="display: none" src="_content/WebviewAppShared/water/xpos.jpg">
-    <img id="ypos" style="display: none" src="_content/WebviewAppShared/water/ypos.jpg">
-    <img id="zneg" style="display: none" src="_content/WebviewAppShared/water/zneg.jpg">
-    <img id="zpos" style="display: none" src="_content/WebviewAppShared/water/zpos.jpg">
+    <div id="debug style="background-color: black; color: lime;"></div>
     <div id="app"></div>
+    <script type="text/javascript">
+        var console = {};
+        var logger = document.getElementById("debug");
+        console.log = function (text) {
+            var element = document.createElement("div");
+            var txt = document.createTextNode(text);
 
-    <div id="blazor-error-ui">
-        An unhandled error has occurred.
-        <a href="" class="reload">Reload</a>
-        <a class="dismiss">🗙</a>
-    </div>
-
+            element.appendChild(txt);
+            logger.appendChild(element);
+        }
+        console.log("Starting logger...");
+        */
+    </script>
     <script src="_framework/blazor.webview.js"></script>
+    <script>
+        function loadWaveForm() 
+        {
+                console.log('test2');
+                const wavesurfer = WaveSurfer.create({
+                container: '#waveform',
+                waveColor: 'lime',
+                progressColor: 'red',
+                url: '/LIEUT1.wav'
+            })
+
+            console.log("created wavesurfer")
+
+            wavesurfer.on('interaction', () => {
+                wavesurfer.play()
+            })
+        }
+
+    </script>
+    <script>
+        var options = {
+            // IMPORTANT - You need a chart of type "scatter"
+            // in order to drag a line chart along the x axis
+            type: 'scatter',
+            data: {
+                "datasets": [
+                    {
+                        "label": "A dataset",
+                        "data": [
+                            {
+                                "x": 0,
+                                "y": 5
+                            },
+                            {
+                                "x": 512788,
+                                "y": 1
+                            }
+                        ],
+                        "backgroundColor": "rgba(255, 99, 132, 1)",
+                        borderWidth: 5.5,
+                        fill: false,
+                        pointRadius: 10,
+                        pointHitRadius: 25,
+                        showLine: true
+                    }
+                ]
+            },
+            options: {
+                layout: {
+                    padding: {
+                        left: 20,
+                        right: 20,
+                        top: 20,
+                        bottom: 10
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: '#00000000'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#ff0000'
+                        }
+                    }
+                },
+                plugins: {
+                    dragData: {
+                        round: 1,
+                        showTooltip: true,
+                        // IMPORTANT - you also need to specify dragX
+                        dragX: true,
+                    }
+                }
+            }
+        }
+
+        function loadMarkersUi()
+        {
+            console.log(document.getElementById('markersContainer'));
+            var ctx = document.getElementById('markersContainer').getContext('2d');
+            var myChart = new Chart(ctx, options);
+            myChart.canvas.parentNode.style.height = '512px';
+            myChart.canvas.parentNode.style.width = '100%';
+        }
+    </script>
 </body>
 
 </html>

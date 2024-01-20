@@ -9,9 +9,10 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <DockPanel>
-        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Background="CadetBlue">
-            <Label>This is native WPF UI</Label>
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Background="Black">
+            <Label Foreground="White">This is native WPF UI</Label>
             <Button Click="Button_Click" Margin="4" Padding="4">Check counter</Button>
+            <Button Click="ShowLipFile" Margin="4" Padding="4">LIP</Button>
         </StackPanel>
         <blazor:BlazorWebView HostPage="wwwroot\index.html" Services="{DynamicResource services}">
             <blazor:BlazorWebView.RootComponents>
