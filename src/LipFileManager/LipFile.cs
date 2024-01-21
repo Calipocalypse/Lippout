@@ -107,6 +107,28 @@ namespace LipFileManager
             if (frames8.Contains(phonem)) return 8;
             else return 0;
         }
+
+        public void RecreateByPhonems(PhonemToFrame phonemManager, int wavLengthOffset)
+        {
+            var phonoFrames = phonemManager.Frames;
+            var framePerMarker = wavLengthOffset / phonoFrames.Length;
+
+            var lastFrameOffset = 0;
+            Phonoframes = new byte[phonoFrames.Length + 1];
+            Markers = new Marker[phonoFrames.Length + 1];
+            for (int i = 0; i < phonoFrames.Length; i++)
+            {
+                Phonoframes[i] = phonoFrames[i];
+                Markers[i] = new Marker { Sample = Convert.ToUInt32(lastFrameOffset), Type = 0 };
+                lastFrameOffset += framePerMarker;
+            }
+            //Last Marker empty push
+            Markers[phonoFrames.Length] = new Marker { Sample = Convert.ToUInt32(lastFrameOffset), Type = 0 };
+            Phonoframes[phonoFrames.Length] = 0;
+
+            NumberOfMarkers = Convert.ToUInt32(Markers.Count());
+            NumberOfPhonems = NumberOfMarkers - 1;
+        }
     }
 
     public class Marker
