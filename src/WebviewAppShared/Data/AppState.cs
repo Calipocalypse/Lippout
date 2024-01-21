@@ -10,5 +10,8 @@ namespace WebviewAppTest
         public LipFile LipFile { get; set; }
         public bool EditorView { get; set; }
         public bool SetupView { get; set; }
+        public bool WordsView { get; set; }
+        public string PhonemText { get; set; }
+        public string EnglishText { get; set; }
     }
 }
