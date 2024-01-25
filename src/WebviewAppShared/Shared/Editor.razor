@@ -1,6 +1,8 @@
 ﻿@using System.IO;
 @using LipFileManager;
+@using System.Text.Json;
 @using WebviewAppShared.Operations;
+@using static LipFileManager.LipFile;
 @inject AppState AppState
 @inject IJSRuntime JsRuntime
 @page "/"
@@ -35,17 +37,26 @@
 
 
 <div hidden="@(!AppState.SetupView)" style="display: flex; flex-direction: column; flex-grow: 1;">
-    <div>
-        <input type="file" id="wav" name="wav" accept="audio/wav" /> <button onclick="playAudio()">Play</button>
-    </div>
+    <p>
+        <label style="width: 250px; height: 250px; background-color: blue;">
+            <InputFile OnChange="@SetWavFile" />
+        </label>
+    </p>
     <p>
         <label style="width: 250px; height: 250px; background-color: red;">
             <InputFile OnChange="@SetLipFile" />
         </label>
     </p>
+    <div style="width: 550px; display: flex; margin: 5px;">
+        <div style="margin: 5px">Output File Name (max 7 bytes in ASCII)</div>
+        <input style="width: 75px; margin: 5px; background-color: #222222" @bind="AppState.OutputFileName" />
+    </div>
 </div>
 
 <div hidden="@(!AppState.WordsView)" style="display: flex; flex-direction: column; flex-grow: 1;">
+    <button @onclick="GenerateWordRegions">Generate word regions</button>
+    <button @onclick="GenerateLipFromPhonem">Generate LIP (Overwrites!!!)</button>
+    <button @onclick="GenerateFromRegions">GenerateFromRegions</button>
     <div style="width: 100%; display: flex; margin: 5px;">
         <div style="margin: 5px">Phonemon text</div>
         <input style="flex: 1; margin: 5px; margin-right: 15px; background-color: #222222" @bind="AppState.PhonemText" />
@@ -54,92 +65,118 @@
         <div style="margin: 5px">English text</div>
         <input style="flex: 1; margin: 5px; margin-right: 15px; background-color: #222222" @bind="AppState.EnglishText" />
     </div>
-    <button @onclick="GenerateLipFromPhonem">Generate LIP (Overwrites!!!)</button>
+    <div id="wordsWaveForm"></div>
 </div>
 
 
 
 <div hidden="@(!AppState.EditorView)" style="display: flex; flex-direction: row; flex-grow: 1;">
-        <button @onclick="GetMarkersPhonemData">Get Data</button>
-        <button @onclick="PutNewMarker">New Marker</button>
+    <button @onclick="GetMarkersPhonemData">Get Data</button>
+    <button @onclick="PutNewMarker">New Marker</button>
+    <button @onclick="DownloadLip">Download File</button>
     <div>
         <div style="margin-left: 20px; margin-right: 30px;" id="waveform"</div>
         <canvas id="markersContainer" style="height: 100px; width: 250px; display: block; box-sizing: border-box;" width="250" height="100"></canvas>
         <div id="debugDiv"></div>
         <div id="phonemFrame" style="color: lime;"></div>
     </div>
-    <img id="frame0" src="LIEUTNP000000.PNG"/>
-    <img id="frame1" src="LIEUTNP000001.PNG"/>
-    <img id="frame2" src="LIEUTNP000002.PNG"/>
-    <img id="frame3" src="LIEUTNP000003.PNG"/>
-    <img id="frame4" src="LIEUTNP000004.PNG"/>
-    <img id="frame5" src="LIEUTNP000005.PNG"/>
-    <img id="frame6" src="LIEUTNP000006.PNG"/>
-    <img id="frame7" src="LIEUTNP000007.PNG"/>
-    <img id="frame8" src="LIEUTNP000008.PNG"/>
-    </div>
+    <img id="frame0" src="LIEUTNP000000.PNG" />
+    <img id="frame1" src="LIEUTNP000001.PNG" />
+    <img id="frame2" src="LIEUTNP000002.PNG" />
+    <img id="frame3" src="LIEUTNP000003.PNG" />
+    <img id="frame4" src="LIEUTNP000004.PNG" />
+    <img id="frame5" src="LIEUTNP000005.PNG" />
+    <img id="frame6" src="LIEUTNP000006.PNG" />
+    <img id="frame7" src="LIEUTNP000007.PNG" />
+    <img id="frame8" src="LIEUTNP000008.PNG" />
+</div>
 
     @code {
 
-        protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
         {
-            if (firstRender)
-            {
-                await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./js-external/wavesurfer.min.js").AsTask();
-                await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./js-external/chart.min.js").AsTask();
-                await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./js-external/chartjs-plugin-dragdata.min.js").AsTask();
+            //await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./js-external/wavesurfer.min.js").AsTask();
+            await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./js-external/chart.min.js").AsTask();
+            await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./js-external/chartjs-plugin-dragdata.min.js").AsTask();
+            //await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./js-external/wavesurfer.regions.js").AsTask();
+            await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./js-external/wavesurfer.esm.js").AsTask();
 
-                await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./js-local/editor-chart.js").AsTask();
-                await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./js-local/editor-images.js").AsTask();
-                await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./js-local/editor-wavesurfer.js").AsTask();
-                await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./js-local/words-wavesurfer.js").AsTask();
+            await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./js-local/editor-chart.js").AsTask();
+            await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./js-local/editor-images.js").AsTask();
+            //await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./js-local/editor-wavesurfer.js").AsTask();
+            //await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./js-local/words-wavesurfer.js").AsTask();
 
-                await JsRuntime.InvokeVoidAsync("loadJsBase");
-            }
+            await JsRuntime.InvokeVoidAsync("loadJsBase");
         }
+    }
     }
 
     @code {
 
-        private async Task SetLipFile(InputFileChangeEventArgs e)
+    private async Task SetLipFile(InputFileChangeEventArgs e)
+    {
+        try
         {
-            try
+            var ms = new MemoryStream();
+            await e.File.OpenReadStream().CopyToAsync(ms);
+            byte[] fileBytes;
+            using (MemoryStream memoryStream = new MemoryStream())
             {
-                var ms = new MemoryStream();
-                await e.File.OpenReadStream().CopyToAsync(ms);
-                byte[] fileBytes;
-                using (MemoryStream memoryStream = new MemoryStream())
-                {
-                    await e.File.OpenReadStream().CopyToAsync(memoryStream);
-                    fileBytes = memoryStream.ToArray();
-                }
-                AppState.LipFile = new LipFile(fileBytes);
-                await PutNewMarkers(AppState.LipFile);
+                await e.File.OpenReadStream().CopyToAsync(memoryStream);
+                fileBytes = memoryStream.ToArray();
             }
-            catch (Exception ex)
+            AppState.LipFile = new LipFile(fileBytes);
+            await PutNewMarkers(AppState.LipFile);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+
+    private async Task SetWavFile(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var ms = new MemoryStream();
+            await e.File.OpenReadStream(512000000).CopyToAsync(ms);
+            byte[] fileBytes;
+            using (MemoryStream memoryStream = new MemoryStream())
             {
-                Console.WriteLine($"Error: {ex.Message}");
+                await e.File.OpenReadStream(512000000).CopyToAsync(memoryStream);
+                fileBytes = memoryStream.ToArray();
+                AppState.WavFile = new WavFile(fileBytes);
+                var serializedWav = JsonSerializer.Serialize(AppState.WavFile);
+                await JsRuntime.InvokeVoidAsync("loadBlobToWords", serializedWav);
             }
         }
-
-        private async Task PutNewMarkers(LipFile lipFile)
+        catch(Exception ex)
         {
-            var phonomarkersJson = new JsonObjectConverter().ConvertToMarkersGraphJson(lipFile);
-            await JsRuntime.InvokeVoidAsync("loadLipMarkers", phonomarkersJson);
-        }
 
-        private async Task GetMarkersPhonemData()
-        {
-            var data = await JsRuntime.InvokeAsync<string>("getMarkersPhonemData");
-            Console.WriteLine();
         }
+    }
 
-        private async Task PutNewMarker()
-        {
-            var x = 523555;
-            var y = 7;
-            await JsRuntime.InvokeVoidAsync("putNewMarker", x, y);
-        }
+    private async Task PutNewMarkers(LipFile lipFile)
+    {
+        var phonomarkersJson = new JsonObjectConverter().ConvertToMarkersGraphJson(lipFile);
+        var max_x = 22100 * AppState.WavFile.Length * 4;
+        await JsRuntime.InvokeVoidAsync("loadLipMarkers", phonomarkersJson, max_x);
+    }
+
+    private async Task GetMarkersPhonemData()
+    {
+        var data = await JsRuntime.InvokeAsync<string>("getMarkersPhonemData");
+        Console.WriteLine();
+    }
+
+    private async Task PutNewMarker()
+    {
+        var x = 523555;
+        var y = 7;
+        await JsRuntime.InvokeVoidAsync("putNewMarker", x, y);
+    }
 
     }
 
@@ -147,13 +184,51 @@
     private async Task GenerateLipFromPhonem()
     {
         var phonemText = AppState.PhonemText;
-        var phonemManager = new PhonemToFrame(phonemText);
+        var englishText = AppState.EnglishText;
+        var phonemManager = new PhonemToFrame(englishText, phonemText);
         var wavLengthOffset = 700000;
         AppState.LipFile.RecreateByPhonems(phonemManager, wavLengthOffset);
         await PutNewMarkers(AppState.LipFile);
     }
+
+    private async Task GenerateWordRegions()
+    {
+        var phonemText = AppState.PhonemText;
+        var englishText = AppState.EnglishText;
+        var phonemManager = new PhonemToFrame(englishText, phonemText);
+        var wavLengthOffset = 700000;
+        var regions = AppState.LipFile.GetPrimitiveWordsRegions(phonemManager, (float)AppState.WavFile.Length);
+        AppState.GeneratedRegions = regions;
+        var regionsJson = JsonSerializer.Serialize(regions);
+        await JsRuntime.InvokeVoidAsync("createGeneratedRegions", regionsJson);
+    }
+
+    private async Task GenerateFromRegions()
+    {
+        var regionsJson = await JsRuntime.InvokeAsync<string>("getCurrentRegions");
+        var regions = JsonSerializer.Deserialize<Region[]>(regionsJson);
+        for (int i = 0; i < regions.Length; i++)
+        {
+            AppState.GeneratedRegions[i].Start = regions[i].Start;
+            AppState.GeneratedRegions[i].End = regions[i].End;
+        }
+        AppState.LipFile.ApplyRegions(regions, (float)AppState.WavFile.Length);
+        var phonomarkersJson = new JsonObjectConverter().ConvertToMarkersGraphJson(AppState.GeneratedRegions);
+        var max_x = 22100 * AppState.WavFile.Length * 4;
+        await JsRuntime.InvokeVoidAsync("loadLipMarkers", phonomarkersJson, max_x);
+    }
+
+    private async Task DownloadLip()
+    {
+        var objectsJson = await JsRuntime.InvokeAsync<string>("getPointsFromChart");
+        var objects = JsonSerializer.Deserialize<ChartObject[]>(objectsJson).ToList();
+        objects.Sort((x, y) => x.x.CompareTo(y.x));
+        var newLipFile = LipFile.GetNewFileAsBytes(objects.ToArray(), AppState.OutputFileName);
+        AppState.GeneratedBytesToSave = newLipFile;
+    }
+
     }
 
     @functions {
-        string value;
+    string value;
     }

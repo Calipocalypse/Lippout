@@ -1,21 +1,24 @@
-function loadWaveForm() {
+let editorWavesurfer;
+
+async function loadWaveForm() {
     var markerOffsetFixed = 0;
     var timerSlowDown = 0;
 
-    const wavesurfer = WaveSurfer.create({
+    const WaveSurfer = (await import('https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.esm.js')).default;
+
+        editorWavesurfer = WaveSurfer.create({
         container: '#waveform',
         waveColor: 'lime',
-        progressColor: 'red',
-        url: '/LIEUT1.wav'
+        progressColor: 'red'
     })
 
-    wavesurfer.on('interaction', () => {
-        wavesurfer.play()
+    editorWavesurfer.on('interaction', () => {
+        editorWavesurfer.play()
     })
 
-    wavesurfer.on('timeupdate', function () {
+    editorWavesurfer.on('timeupdate', function () {
         if (timerSlowDown > 3) {
-            var currentTime = wavesurfer.getCurrentTime();
+            var currentTime = editorWavesurfer.getCurrentTime();
             var markerOffset = 22100 * 4 * currentTime;
             markerOffsetFixed = markerOffset.toFixed();
             document.getElementById("debugDiv").textContent = markerOffsetFixed;
@@ -27,8 +30,8 @@ function loadWaveForm() {
         }
     });
 
-    wavesurfer.on('click', function () {
-        var currentTime = wavesurfer.getCurrentTime();
+    editorWavesurfer.on('click', function () {
+        var currentTime = editorWavesurfer.getCurrentTime();
         var markerOffset = 22100 * 4 * currentTime;
     });
 }

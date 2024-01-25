@@ -48,14 +48,13 @@ var options = {
                     color: '#ff0000'
                 },
                 min: 0,
-                max: 8.9
+                max: 8
             }
         },
         plugins: {
             dragData: {
-                round: 1,
+                round: 0,
                 showTooltip: true,
-                // IMPORTANT - you also need to specify dragX
                 dragX: true
             }
         }
@@ -63,7 +62,6 @@ var options = {
 }
 
 function loadMarkersUi() {
-    alert('wokring')
     console.log(document.getElementById('markersContainer'));
     var ctx = document.getElementById('markersContainer').getContext('2d');
     theChart = new Chart(ctx, options);
@@ -105,7 +103,12 @@ function getMarkersPhonemData() {
         delete point.y;
     });
     var toReturn = JSON.stringify(data);
-    alert(JSON.stringify(toReturn));
+    return toReturn;
+}
+
+function getPointsFromChart() {
+    var data = JSON.parse(JSON.stringify(theChart.data.datasets[0].data));
+    var toReturn = JSON.stringify(data);
     return toReturn;
 }
 
@@ -118,13 +121,15 @@ function putNewMarker(markerPos, phonemPos) {
     theChart.update();
 }
 
-function loadLipMarkers(phonomarkers) {
+function loadLipMarkers(phonomarkers, max_x) {
     var phonomarkers = JSON.parse(phonomarkers);
-    max_x = phonomarkers[phonomarkers.length - 1].markerPos;
-    alert(phonomarkers.length);
+    max_x = Math.floor(max_x);
     options.options.scales.x.max = max_x;
     theChart.clear();
     loadNewLipData();
+    phonomarkers.sort(function (a, b) {
+        return a.markerPos - b.markerPos;
+    });
     phonomarkers.forEach((phonomarker) => {
         newData3 = { "x": phonomarker.markerPos, "y": phonomarker.phonemPos };
         theChart.data.datasets[0].data.push(newData3);

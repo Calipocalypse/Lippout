@@ -10,6 +10,8 @@
     <link href="_content/WebviewAppShared/css/site.css" rel="stylesheet" />
     <link href="BlazorWpfApp.styles.css" rel="stylesheet" />
     <link href="index.css" rel="stylesheet" />
+    <script type="module" src="./js-external/wavesurfer.esm.js"></script>
+    <script src="./js-external/test.js"></script>
     <script src="./js-local/editor-chart.js"></script>
     <script src="./js-local/editor-wavesurfer.js"></script>
     <script src="./js-local/editor-images.js"></script>
@@ -18,9 +20,10 @@
 
 <body>
     <script>
-        function loadJsBase() {
+        async function loadJsBase() {
             loadMarkersUi();
-            loadWaveForm();
+            await loadWaveForm();
+            await loadWordsWaveForm();
             onStartDivImages();
         }
     </script>

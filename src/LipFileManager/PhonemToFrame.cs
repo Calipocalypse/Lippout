@@ -8,23 +8,31 @@ namespace LipFileManager
 {
     public class PhonemToFrame
     {
-        public byte[] Frames;
-        public PhonemToFrame(string phonemText)
+        public byte[][] Frames;
+        public string[] Words;
+        public string[] Phonems;
+        public PhonemToFrame(string englishText, string phonemText)
         {
             var dictionary = GetPhonemesDictionary();
 
-            var phonemonSplitted = phonemText.Split(' ');
-            var nums = new List<byte>();
+            var phonemsSplitted = phonemText.Split(' ');
+            var textSplitted = englishText.Split(' ');
 
-            for (int i = 0; i < phonemonSplitted.Length; i++)
+            if (phonemsSplitted.Length != textSplitted.Length)
             {
-                var table = GetTableOfWord(phonemonSplitted[i], dictionary);
-                foreach (var num in table)
-                {
-                    nums.Add(num);
-                }
+                throw new Exception("phonemon text has different count of words than english text");
             }
 
+            var nums = new List<byte[]>();
+
+            for (int i = 0; i < phonemsSplitted.Length; i++)
+            {
+                var table = GetTableOfWord(phonemsSplitted[i]);
+                nums.Add(table);
+            }
+
+            Phonems = phonemsSplitted;
+            Words = textSplitted;
             Frames = nums.ToArray();
         }
 
@@ -77,11 +85,11 @@ namespace LipFileManager
             return dictionary;
         }
 
-        byte[] GetTableOfWord(string word, Dictionary<string, byte> dictionary)
+        public byte[] GetTableOfWord(string word)
         {
             var list = new List<byte>();
 
-            foreach (var entry in dictionary)
+            foreach (var entry in GetPhonemesDictionary())
             {
                 word = word.Replace(entry.Key, entry.Value.ToString());
             }

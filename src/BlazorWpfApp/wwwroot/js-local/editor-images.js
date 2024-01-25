@@ -16,11 +16,13 @@ function updateFrame(time) {
     var data = JSON.parse(JSON.stringify(theChart.data.datasets[0].data));
     let foundElement = null;
 
+    var previousElement = data[0];
     for (const element of data) {
         if (element.x > time) {
-            foundElement = element;
+            foundElement = previousElement;
             break;
         }
+        previousElement = element;
     }
 
     if (foundElement != null) {
