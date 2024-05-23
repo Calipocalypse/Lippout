@@ -1,10 +1,19 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+﻿using LipFileManager;
+using static LipFileManager.LipFile;
 
 namespace WebviewAppTest
 {
     public class AppState
     {
-        public int Counter { get; set; }
+        public LipFile LipFile { get; set; }
+        public bool EditorView { get; set; }
+        public bool SetupView { get; set; }
+        public bool WordsView { get; set; }
+        public string PhonemText { get; set; } = "lɛts si wɑt kaɪnd ʌv ˈnæsti ˈslændər ɪz bɪˈhaɪnd ðɪs roʊb";
+        public string EnglishText { get; set; } = "Lets see what kind of nasty slander is behind this robe";
+        public Region[] GeneratedRegions { get; set; } = new Region[] { };
+        public WavFile WavFile { get; set; }
+        public byte[] GeneratedBytesToSave { get; set; } = new byte[0]; 
+        public string OutputFileName { get; set; }
     }
 }

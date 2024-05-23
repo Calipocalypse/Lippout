@@ -1,0 +1,55 @@
+*
+{
+    color: white;
+}
+
+body {
+    background-color: #111111;
+    overflow-y: hidden;
+    overflow-x: hidden;
+}
+
+button {
+    color: lime;
+    background-color: black;
+}
+
+.tab
+{
+    display: flex;
+}
+
+.tabButton {
+    color: #fff;
+    font-family: Trebuchet MS;
+    font-size: 18px;
+    font-weight: 800;
+    font-style: normal;
+    text-decoration: none;
+    width: 50%;
+    margin: 0;
+    padding: 0;
+    border: 0px solid #000;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.tabButton span {
+        margin-right: 15px;
+        display: block;
+        width: 29px;
+        height: 29px;
+        transform: rotate(0deg);
+    }
+
+.tabButton:hover {
+        background: linear-gradient(to right,#d054cc,#e35e5e);
+        background-color: #d054cc;
+    }
+
+    .tabButton:focus {
+        outline: 0 !important;
+        background: linear-gradient(to right,#ca19c6,#e03333);
+        background-color: #ca19c6;
+    }

@@ -4,37 +4,31 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Blazor WPF app</title>
+    <title>Lippout</title>
     <base href="/" />
     <link rel="stylesheet" href="_content/WebviewAppShared/css/bootstrap/bootstrap.min.css" />
     <link href="_content/WebviewAppShared/css/site.css" rel="stylesheet" />
     <link href="BlazorWpfApp.styles.css" rel="stylesheet" />
-
-    <!-- for water demo page -->
-    <script src="_content/WebviewAppShared/water/OES_texture_float_linear-polyfill.js"></script>
-    <script src="_content/WebviewAppShared/water/lightgl.js"></script>
-    <script src="_content/WebviewAppShared/water/cubemap.js"></script>
-    <script src="_content/WebviewAppShared/water/renderer.js"></script>
-    <script src="_content/WebviewAppShared/water/water.js"></script>
-    <script src="_content/WebviewAppShared/water/main.js"></script>
+    <link href="index.css" rel="stylesheet" />
+    <script type="module" src="./js-external/wavesurfer.esm.js"></script>
+    <script src="./js-external/test.js"></script>
+    <script src="./js-local/editor-chart.js"></script>
+    <script src="./js-local/editor-wavesurfer.js"></script>
+    <script src="./js-local/editor-images.js"></script>
+    <script src="./js-local/words-wavesurfer.js"></script>
 </head>
 
 <body>
-    <!-- water demo -->
-    <img id="tiles" style="display: none" src="_content/WebviewAppShared/water/tiles.jpg">
-    <img id="xneg" style="display: none" src="_content/WebviewAppShared/water/xneg.jpg">
-    <img id="xpos" style="display: none" src="_content/WebviewAppShared/water/xpos.jpg">
-    <img id="ypos" style="display: none" src="_content/WebviewAppShared/water/ypos.jpg">
-    <img id="zneg" style="display: none" src="_content/WebviewAppShared/water/zneg.jpg">
-    <img id="zpos" style="display: none" src="_content/WebviewAppShared/water/zpos.jpg">
+    <script>
+        async function loadJsBase() {
+            loadMarkersUi();
+            await loadWaveForm();
+            await loadWordsWaveForm();
+            onStartDivImages();
+        }
+    </script>
+    <div id="debug" style="background-color: black; color: lime;"></div>
     <div id="app"></div>
-
-    <div id="blazor-error-ui">
-        An unhandled error has occurred.
-        <a href="" class="reload">Reload</a>
-        <a class="dismiss">🗙</a>
-    </div>
-
     <script src="_framework/blazor.webview.js"></script>
 </body>
 
