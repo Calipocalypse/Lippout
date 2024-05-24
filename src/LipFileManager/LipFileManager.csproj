@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.PhoneticMatching" Version="0.0.7" />
+    <PackageReference Include="Vosk" Version="0.3.38" />
+  </ItemGroup>
+
 </Project>
