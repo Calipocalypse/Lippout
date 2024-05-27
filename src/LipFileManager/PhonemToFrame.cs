@@ -15,8 +15,13 @@ namespace LipFileManager
         {
             var dictionary = GetPhonemesDictionary();
 
+            phonemText = phonemText.TrimEnd();
+            englishText = englishText.TrimEnd();
+
             var phonemsSplitted = phonemText.Split(' ');
             var textSplitted = englishText.Split(' ');
+
+            
 
             if (phonemsSplitted.Length != textSplitted.Length)
             {

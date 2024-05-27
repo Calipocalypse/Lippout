@@ -162,28 +162,25 @@ namespace LipFileManager
             NumberOfPhonems = NumberOfMarkers - 1;
         }
 
-        public Region[] GetPrimitiveWordsRegions(PhonemToFrame phonemManager, float wavLengthTime)
+        public Region[] GetExactWordsRegions(PhonemToFrame phonemManager, float wavLengthTime, RecognizedTextOutput recognizedTextResult)
         {
             var words = phonemManager.Words;
-            var characters = string.Join("", words);
-            var charactersCount = characters.Count();
-
-            var offsetPerCharacter = wavLengthTime / charactersCount;
 
             var regions = new Region[words.Count()];
-            var lastFrameOffset = 0f;
+            var lastWordTime = recognizedTextResult.Result.Last().End;
+            var recognizerLengthToWavLength = lastWordTime / wavLengthTime;
+
             for (int i = 0; i < words.Length; i++)
             {
                 var word = words[i];
-                var charactersInWord = word.Count();
-                var charactersOffsetLength = charactersInWord * offsetPerCharacter;
+                var wordInfo = recognizedTextResult.Result[i];
+                var wordStart = wordInfo.Start * recognizerLengthToWavLength;
+                var wordEnd = wordInfo.End * recognizerLengthToWavLength;
 
                 var frames = phonemManager.GetTableOfWord(phonemManager.Phonems[i]);
 
-                var region = new Region() { Word = word, Frames = frames, Start = lastFrameOffset, End = lastFrameOffset + charactersOffsetLength };
+                var region = new Region() { Word = word, Frames = frames, Start =(float)wordStart, End = (float)wordEnd };
                 regions[i] = region;
-
-                lastFrameOffset += charactersOffsetLength;
             }
             return regions;
         }

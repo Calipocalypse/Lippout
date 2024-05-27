@@ -150,6 +150,12 @@
                 AppState.WavFile = new WavFile(fileBytes);
                 var serializedWav = JsonSerializer.Serialize(AppState.WavFile);
                 await JsRuntime.InvokeVoidAsync("loadBlobToWords", serializedWav);
+                var pathToModel = @"K:\11. Lipout\vosk-model-small-en-us-0.15 (1)\vosk-model-small-en-us-0.15";
+                AppState.RecognizedTextResult = new WavToWords(pathToModel).GetWords(AppState.WavFile.Bytes, AppState.WavFile.SampleRate);
+
+                var wordLine = AppState.RecognizedTextResult.Text;
+                AppState.EnglishText = wordLine;
+                AppState.PhonemText = WordToPhonem.GetPronunciationFromText(wordLine);
             }
         }
         catch(Exception ex)
@@ -197,7 +203,7 @@
         var englishText = AppState.EnglishText;
         var phonemManager = new PhonemToFrame(englishText, phonemText);
         var wavLengthOffset = 700000;
-        var regions = AppState.LipFile.GetPrimitiveWordsRegions(phonemManager, (float)AppState.WavFile.Length);
+        var regions = AppState.LipFile.GetExactWordsRegions(phonemManager, (float)AppState.WavFile.Length, AppState.RecognizedTextResult);
         AppState.GeneratedRegions = regions;
         var regionsJson = JsonSerializer.Serialize(regions);
         await JsRuntime.InvokeVoidAsync("createGeneratedRegions", regionsJson);
